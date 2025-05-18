@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.components.Outtake;
 public class PrepareIntake extends SequentialCommand {
     public PrepareIntake() {
         super(
+                new RunCommand(() -> David.outtake.open()),
                 new RunCommand(() -> David.outtake.setArm(Outtake.ArmPos.PREPARE_TRANSFER.getPos())),
                 new Wait(300),
                 new ParallelCommand(

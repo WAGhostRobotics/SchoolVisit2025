@@ -11,10 +11,10 @@ public class PrepareBucketDeposit extends SequentialCommand {
     public PrepareBucketDeposit() {
         super(
             new Transfer(),
+            new OuttakeMove(Outtake.SlidePosition.BUCKET.getPos()),
             new ParallelCommand(
                     new RunCommand(() -> David.outtake.setArm(Outtake.ArmPos.BUCKET.getPos())),
-                    new RunCommand(() -> David.outtake.setWrist(Outtake.WristPos.BUCKET.getPos())),
-                    new OuttakeMove(Outtake.SlidePosition.BUCKET.getPos())
+                    new RunCommand(() -> David.outtake.setWrist(Outtake.WristPos.BUCKET.getPos()))
             )
         );
     }

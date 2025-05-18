@@ -13,23 +13,26 @@ import com.qualcomm.robotcore.util.Range;
 public class Outtake {
     private DcMotorEx slide1;
     private DcMotorEx slide2;
-    public static double defaultPower = 0.2;
+    public static double defaultPower = 0.5;
     private Servo arm;
+    private Servo arm2;
     private double armPos;
     private Servo wrist;
     private double wristPos;
     private Servo claw;
     private double clawPos;
     private boolean isClawOpen;
+    private Servo linkage;
+    private double linkagePos;
 
 
     PIDController slideControl;
     boolean positionMode;
-    public static double P=0.0005, I=0, D=0;
+    public static double P=0.004, I=0.00008, D=0;
     private int targetPosition;
     private int currentPosition;
     private int error;
-    private int ERROR;
+    private int ERROR = 200;
     private double pidPower;
 
 
@@ -40,19 +43,25 @@ public class Outtake {
         slide1 = hwMap.get(DcMotorEx.class, "slide1");
         slide2 = hwMap.get(DcMotorEx.class, "slide2");
         arm = hwMap.get(Servo.class, "arm");
+        arm2 = hwMap.get(Servo.class, "arm2");
         wrist = hwMap.get(Servo.class, "wrist");
         claw = hwMap.get(Servo.class, "claw");
+        linkage = hwMap.get(Servo.class, "linkage");
         slide1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         slide2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         slide1.setDirection(DcMotorSimple.Direction.REVERSE);
         slide1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        arm.setPosition(ArmPos.PREPARE_TRANSFER.getPos());
+        wrist.setPosition(WristPos.PREPARE_TRANSFER.getPos());
+        claw.setPosition(ClawPos.OPEN.getPos());
     }
 
     public enum SlidePosition {
+        RESET(-80),
         RETRACTED(0),
-        TRANSFER(500),
-        MAX(2000),
-        BUCKET(1000),
+        TRANSFER(-60),
+        MAX(2200),
+        BUCKET(2100),
         SPECIMEN(500);
         final int pos;
         SlidePosition(int pos) {this.pos = pos;}
@@ -62,11 +71,11 @@ public class Outtake {
     }
 
     public enum ArmPos {
-        PREPARE_TRANSFER(0.2),
-        TRANSFER(0),
+        PREPARE_TRANSFER(0.7368),
+        TRANSFER(0.7568),
         SPEC_DEPOSIT(0.5),
         SPEC_GRAB(0.7),
-        BUCKET(0.4);
+        BUCKET(0.1152);
         final double pos;
         ArmPos(double pos) {this.pos = pos;}
         public double getPos() {
@@ -74,21 +83,12 @@ public class Outtake {
         }
     }
 
-    public enum ClawPos {
-        CLOSE(0),
-        OPEN(0.5);
-        final double pos;
-        ClawPos(double pos) {this.pos = pos;}
-        public double getPos() {
-            return pos;
-        }
-    }
-
     public enum WristPos {
-        BUCKET(0.5),
+        BUCKET(0.4729),
         SPEC_DEPOSIT(0.5),
         SPEC_GRAB(0.7),
-        TRANSFER(0);
+        TRANSFER(0.7837),
+        PREPARE_TRANSFER(0.8047);
 
         final double pos;
 
@@ -96,17 +96,39 @@ public class Outtake {
         public double getPos() {return pos;}
     }
 
+    public enum ClawPos {
+        CLOSE(0),
+        OPEN(0.411);
+        final double pos;
+        ClawPos(double pos) {this.pos = pos;}
+        public double getPos() {
+            return pos;
+        }
+    }
+
+    public enum LinkagePos {
+        RETRACT(0),
+        EXTEND(0.6);
+        final double pos;
+        LinkagePos(double pos) {this.pos = pos;}
+        public double getPos() {
+            return pos;
+        }
+    }
+
+
+
 
     public void goUp() {
         positionMode = false;
-        slide1.setPower(defaultPower);
-        slide2.setPower(-defaultPower);
+        slide1.setPower(-defaultPower);
+        slide2.setPower(defaultPower);
     }
 
     public void goDown() {
         positionMode = false;
-        slide1.setPower(-defaultPower);
-        slide2.setPower(defaultPower);
+        slide1.setPower(defaultPower);
+        slide2.setPower(-defaultPower);
     }
 
     public void stop() {
@@ -133,8 +155,12 @@ public class Outtake {
             return;
         error = targetPosition - currentPosition;
         pidPower = Range.clip(slideControl.calculate(0, error), -1, 1);
-        slide1.setPower(pidPower);
-        slide2.setPower(-pidPower);
+        slide1.setPower(-pidPower);
+        slide2.setPower(pidPower);
+        if (currentPosition <= SlidePosition.RETRACTED.getPos() && targetPosition==SlidePosition.RESET.getPos()) {
+            slide1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            setTargetPosition(SlidePosition.RETRACTED.getPos());
+        }
     }
 
     public boolean isFinished() {
@@ -154,7 +180,7 @@ public class Outtake {
     // Arm, Wrist, and Claw
 
     public void setArm(double pos) {
-
+        arm2.setPosition(1-pos);
         arm.setPosition(pos);
         armPos = pos;
     }
@@ -195,6 +221,25 @@ public class Outtake {
                 (armPos == ArmPos.PREPARE_TRANSFER.getPos()) && (wristPos == WristPos.TRANSFER.getPos());
     }
 
+    public void setLinkage(double pos) {
+        linkagePos = pos;
+        linkage.setPosition(pos);
+    }
+
+    public void extendLinkage() {
+        linkagePos = LinkagePos.EXTEND.getPos();
+        linkage.setPosition(LinkagePos.EXTEND.getPos());
+    }
+
+    public void retractLinkage() {
+        linkagePos = LinkagePos.RETRACT.getPos();
+        linkage.setPosition(LinkagePos.RETRACT.getPos());
+    }
+
+    public void resetSlideEncoder() {
+        slide1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    }
+
 
     public String getTelemetry() {
         return "Slides" +
@@ -204,7 +249,8 @@ public class Outtake {
                 "\nPositionMode: " + positionMode +
                 "\n\nArm: " + armPos +
                 "\nWrist: " +wristPos +
-                "\nClaw: " + clawPos;
+                "\nClaw: " + clawPos +
+                "\nLinkage: " + linkagePos;
     }
 
 

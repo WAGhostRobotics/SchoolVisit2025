@@ -14,17 +14,19 @@ public class Transfer extends SequentialCommand {
                 new ParallelCommand(
                         new RunCommand(() -> David.intake.intakeStop()),
                         new RunCommand(() -> David.outtake.setArm(Outtake.ArmPos.PREPARE_TRANSFER.getPos())),
-                        new RunCommand(() -> David.outtake.setWrist(Outtake.WristPos.TRANSFER.getPos()))
+                        new RunCommand(() -> David.outtake.setWrist(Outtake.WristPos.PREPARE_TRANSFER.getPos()))
                 ),
                 new ParallelCommand(
                         new IntakeMove(Intake.ExtensionPosition.TRANSFER.getPosition()),
-                        new OuttakeMove(Outtake.SlidePosition.TRANSFER.getPos())
+                        new OuttakeMove(Outtake.SlidePosition.RESET.getPos())
                 ),
                 new Wait(500),
+                new RunCommand(() -> David.outtake.setWrist(Outtake.WristPos.TRANSFER.getPos())),
+                new Wait(100),
                 new RunCommand(() -> David.outtake.setArm(Outtake.ArmPos.TRANSFER.getPos())),
                 new RunCommand(() -> David.outtake.close()),
                 new Wait(500),
-                new RunCommand(() -> David.outtake.setArm(Outtake.ArmPos.PREPARE_TRANSFER.getPos()))
+                new RunCommand(() -> David.intake.setChamber(Intake.ChamberPosition.INTAKE.getPosition()))
         );
     }
 }

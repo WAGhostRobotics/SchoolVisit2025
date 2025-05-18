@@ -32,6 +32,7 @@ public class Main extends LinearOpMode {
     ToggleButtonReader clawButton;
     ToggleButtonReader specGrabButton;
     ToggleButtonReader modeButton;
+    ToggleButtonReader resetSlideButton;
     boolean bucketMode = true;
 
 
@@ -49,6 +50,9 @@ public class Main extends LinearOpMode {
         );
         specGrabButton = new ToggleButtonReader(
                 driverOp, GamepadKeys.Button.A
+        );
+        resetSlideButton = new ToggleButtonReader(
+                driverOp2, GamepadKeys.Button.X
         );
 
 
@@ -103,6 +107,8 @@ public class Main extends LinearOpMode {
             // Intake
             if (intakeButton) {
                 if (!David.outtake.readyForIntake()) {
+                    bucketDeposit.stop();
+                    specGrab.stop();
                     prepareIntake.init();
                 }
                 else {
@@ -139,7 +145,18 @@ public class Main extends LinearOpMode {
 
 
 
+            if (resetSlideButton.wasJustReleased()) {
+                David.outtake.resetSlideEncoder();
+            }
 
+            David.intake.update();
+            David.outtake.update();
+
+            clawButton.readValue();
+            resetSlideButton.readValue();
+            prepareIntake.update();
+            bucketDeposit.update();
+            outtakeButton.readValue();
             telemetry.addData("", David.drivetrain.getTelemetry());
             telemetry.update();
         }

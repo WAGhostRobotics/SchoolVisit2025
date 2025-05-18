@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.testingOp;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.David;
 import org.firstinspires.ftc.teamcode.components.Outtake;
 
+@Config
 @TeleOp
 public class OuttakePID extends LinearOpMode {
     public static double P = Outtake.P, I= Outtake.I, D= Outtake.D;

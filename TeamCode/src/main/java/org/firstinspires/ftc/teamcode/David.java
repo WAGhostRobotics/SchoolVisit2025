@@ -16,10 +16,11 @@ public class David {
     public static void init(HardwareMap hwMap) {
         hardwareMap = hwMap;
         drivetrain = new MecanumDrive(hwMap);
-        intake = new Intake();
-        intake.init(hwMap);
+
         outtake = new Outtake();
         outtake.init(hwMap);
+        intake = new Intake();
+        intake.init(hwMap);
     }
 
 }
