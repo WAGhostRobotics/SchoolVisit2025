@@ -62,7 +62,8 @@ public class Outtake {
         TRANSFER(-60),
         MAX(2200),
         BUCKET(2100),
-        SPECIMEN(500);
+        SPECIMEN(500),
+        HANG(1500);
         final int pos;
         SlidePosition(int pos) {this.pos = pos;}
         public int getPos() {

@@ -11,6 +11,8 @@ import org.firstinspires.ftc.teamcode.CommandBase.PrepareIntake;
 import org.firstinspires.ftc.teamcode.CommandBase.PrepareSpecDeposit;
 import org.firstinspires.ftc.teamcode.CommandBase.SpecGrab;
 import org.firstinspires.ftc.teamcode.David;
+import org.firstinspires.ftc.teamcode.components.Intake;
+import org.firstinspires.ftc.teamcode.components.Outtake;
 
 @TeleOp
 public class Main extends LinearOpMode {
@@ -30,7 +32,8 @@ public class Main extends LinearOpMode {
     boolean retractButton;
     ToggleButtonReader outtakeButton;
     ToggleButtonReader clawButton;
-    ToggleButtonReader specGrabButton;
+    ToggleButtonReader hangRetractButton;
+    ToggleButtonReader hangPrepButton;
     ToggleButtonReader modeButton;
     ToggleButtonReader resetSlideButton;
     boolean bucketMode = true;
@@ -48,8 +51,11 @@ public class Main extends LinearOpMode {
         clawButton = new ToggleButtonReader(
                 driverOp, GamepadKeys.Button.X
         );
-        specGrabButton = new ToggleButtonReader(
+        hangRetractButton = new ToggleButtonReader(
                 driverOp, GamepadKeys.Button.A
+        );
+        hangPrepButton = new ToggleButtonReader(
+                driverOp, GamepadKeys.Button.Y
         );
         resetSlideButton = new ToggleButtonReader(
                 driverOp2, GamepadKeys.Button.X
@@ -74,9 +80,9 @@ public class Main extends LinearOpMode {
             intakeOutButton = gamepad1.dpad_right;
             extendButton = gamepad1.right_bumper;
             retractButton = gamepad1.left_bumper;
-            double driveTurn = Math.pow(-gamepad1.right_stick_x, 1);
-            double driveY = Math.pow(-gamepad1.left_stick_x, 1);
-            double driveX = Math.pow(-gamepad1.left_stick_y, 1);
+            double driveTurn = Math.pow(-gamepad2.right_stick_x, 1);
+            double driveY = Math.pow(-gamepad2.left_stick_x, 1);
+            double driveX = Math.pow(-gamepad2.left_stick_y, 1);
 
 
 
@@ -138,11 +144,18 @@ public class Main extends LinearOpMode {
                 David.intake.stop();
             }
 
+            if (hangRetractButton.wasJustReleased()) {
+                prepareIntake.stop();
+                bucketDeposit.stop();
 
-            if (specGrabButton.wasJustReleased()) {
-                specGrab.init();
+                David.outtake.setTargetPosition(Outtake.SlidePosition.RETRACTED.getPos());
             }
-
+            else if (hangPrepButton.wasJustReleased()) {
+                prepareIntake.stop();
+                bucketDeposit.stop();
+                David.intake.setTargetPosition(Intake.ExtensionPosition.TRANSFER.getPosition());
+                David.outtake.setTargetPosition(Outtake.SlidePosition.HANG.getPos());
+            }
 
 
             if (resetSlideButton.wasJustReleased()) {
@@ -152,6 +165,8 @@ public class Main extends LinearOpMode {
             David.intake.update();
             David.outtake.update();
 
+            hangPrepButton.readValue();
+            hangRetractButton.readValue();
             clawButton.readValue();
             resetSlideButton.readValue();
             prepareIntake.update();
