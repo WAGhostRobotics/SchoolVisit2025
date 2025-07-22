@@ -22,8 +22,8 @@ public class Main extends LinearOpMode {
 //            leftWheel.setPower(gamepad1.left_stick_y);
 //            rightWheel.setPower(gamepad1.right_stick_y);
 
-            leftWheel.setPower(gamepad1.left_stick_y + gamepad1.right_stick_x);
-            rightWheel.setPower(gamepad1.left_stick_y - gamepad1.right_stick_x);
+            leftWheel.setPower(gamepad1.left_stick_y - gamepad1.right_stick_x);
+            rightWheel.setPower(gamepad1.left_stick_y + gamepad1.right_stick_x);
 
 //            leftWheel.setPower(gamepad1.left_stick_y + gamepad1.left_stick_x);
 //            rightWheel.setPower(gamepad1.left_stick_y - gamepad1.left_stick_x);

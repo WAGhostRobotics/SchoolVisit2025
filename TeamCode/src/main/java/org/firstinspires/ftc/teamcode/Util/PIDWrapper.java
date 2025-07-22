@@ -12,6 +12,7 @@ public class PIDWrapper {
     PIDController pidController;
     // Pull test
     public PIDWrapper() {
+        pidController = new PIDController(0, 0, 0);
         pidController.setIntegrationBounds(-10000000, 10000000);
     }
 

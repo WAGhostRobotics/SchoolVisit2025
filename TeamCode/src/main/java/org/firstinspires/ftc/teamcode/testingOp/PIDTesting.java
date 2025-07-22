@@ -23,12 +23,15 @@ public class PIDTesting extends LinearOpMode {
         arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         waitForStart();
         while (opModeIsActive()) {
-            pidController.setCurrentPosition(arm.getCurrentPosition());
-            pidController.setTarget(target);
-            power = pidController.calculatePower();
-            pidController.setPID(P, I, D);
-            arm.setPower(power);
-            telemetry.addData("Pw: ", power);
+//            pidController.setCurrentPosition(arm.getCurrentPosition());
+//            pidController.setTarget(target);
+//
+//            power = pidController.calculatePower();
+//            pidController.setPID(P, I, D);
+//            arm.setPower(power);
+
+            telemetry.addData("Position", arm.getCurrentPosition());
+            telemetry.addData("Power: ", power);
             telemetry.update();
         }
     }
