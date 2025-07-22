@@ -1,12 +1,14 @@
 package org.firstinspires.ftc.teamcode.Util;
 
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.qualcomm.robotcore.util.Range;
 
 public class PIDWrapper {
 
     public double P, I, D;
     double target;
     double currentPos;
+    double error;
     PIDController pidController;
     // Pull test
     public PIDWrapper() {
@@ -17,15 +19,15 @@ public class PIDWrapper {
         this.target = target;
     }
 
-    public void setP(int p) {
+    public void setP(double p) {
         P = p;
     }
 
-    public void setI(int i) {
+    public void setI(double i) {
         I = i;
     }
 
-    public void setD(int d) {
+    public void setD(double d) {
         D = d;
     }
 
@@ -33,7 +35,15 @@ public class PIDWrapper {
         currentPos = currentPosition;
     }
 
-    public void calculatePower() {
+    public double calculatePower() {
+        error = target - currentPos;
+        double pw = Range.clip(pidController.calculate(0, error), -1, 1);
+        return pw;
+    }
 
+    public void setPID(double p, double i , double d) {
+        setP(p);
+        setI(i);
+        setD(d);
     }
 }
