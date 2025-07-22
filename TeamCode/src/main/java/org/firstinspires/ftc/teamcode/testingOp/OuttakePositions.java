@@ -13,7 +13,7 @@ public class OuttakePositions extends LinearOpMode {
     public double wristPos = 1;
     public double linkagePos = 0;
     public double clawPos = Outtake.ClawPos.OPEN.getPos();
-    public double chamberPos = Intake.ChamberPosition.INTAKE.getPosition();
+    public double chamberPos = Intake.ChamberPosition.RETRACT.getPosition();
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -51,6 +51,9 @@ public class OuttakePositions extends LinearOpMode {
             David.outtake.setWrist(wristPos);
             David.outtake.setClaw(clawPos);
             David.intake.setChamber(chamberPos);
+            David.outtake.update();
+            David.outtake.stop();
+            David.outtake.positionMode = false;
 
 
             telemetry.addData("", David.intake.getTelemetry());

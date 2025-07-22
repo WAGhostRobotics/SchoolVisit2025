@@ -13,20 +13,20 @@ public class Transfer extends SequentialCommand {
                 new RunCommand(() -> David.outtake.open()),
                 new ParallelCommand(
                         new RunCommand(() -> David.intake.intakeStop()),
-                        new RunCommand(() -> David.outtake.setArm(Outtake.ArmPos.PREPARE_TRANSFER.getPos())),
-                        new RunCommand(() -> David.outtake.setWrist(Outtake.WristPos.PREPARE_TRANSFER.getPos()))
+                        new RunCommand(() -> David.intake.setChamber(Intake.ChamberPosition.RETRACT.getPosition())),
+                        new RunCommand(() -> David.outtake.setArm(Outtake.ArmPos.TRANSFER.getPos())),
+                        new RunCommand(() -> David.outtake.setWrist(Outtake.WristPos.TRANSFER.getPos()))
                 ),
                 new ParallelCommand(
                         new IntakeMove(Intake.ExtensionPosition.TRANSFER.getPosition()),
-                        new OuttakeMove(Outtake.SlidePosition.RESET.getPos())
+                        new OuttakeMove(Outtake.SlidePosition.PREPARE_TRANSFER.getPos())
                 ),
                 new Wait(500),
-                new RunCommand(() -> David.outtake.setWrist(Outtake.WristPos.TRANSFER.getPos())),
+                new OuttakeMove(Outtake.SlidePosition.TRANSFER.getPos()),
                 new Wait(100),
-                new RunCommand(() -> David.outtake.setArm(Outtake.ArmPos.TRANSFER.getPos())),
                 new RunCommand(() -> David.outtake.close()),
                 new Wait(500),
-                new RunCommand(() -> David.intake.setChamber(Intake.ChamberPosition.INTAKE.getPosition()))
+                new RunCommand(() -> David.intake.setChamber(Intake.ChamberPosition.RETRACT.getPosition()))
         );
     }
 }

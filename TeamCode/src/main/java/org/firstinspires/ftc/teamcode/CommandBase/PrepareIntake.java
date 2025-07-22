@@ -11,10 +11,10 @@ public class PrepareIntake extends SequentialCommand {
     public PrepareIntake() {
         super(
                 new RunCommand(() -> David.outtake.open()),
-                new RunCommand(() -> David.outtake.setArm(Outtake.ArmPos.PREPARE_TRANSFER.getPos())),
+                new RunCommand(() -> David.outtake.setArm(Outtake.ArmPos.RETRACT.getPos())),
                 new Wait(300),
                 new ParallelCommand(
-                        new OuttakeMove(Outtake.SlidePosition.TRANSFER.getPos()),
+                        new OuttakeMove(Outtake.SlidePosition.PREPARE_TRANSFER.getPos()),
                         new RunCommand(() -> David.outtake.setWrist(Outtake.WristPos.TRANSFER.getPos()))
                 ),
                 new IntakeMove(Intake.ExtensionPosition.BASE_EXTEND.getPosition())

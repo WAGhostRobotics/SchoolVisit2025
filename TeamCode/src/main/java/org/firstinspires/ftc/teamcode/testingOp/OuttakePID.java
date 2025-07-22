@@ -18,6 +18,9 @@ public class OuttakePID extends LinearOpMode {
         David.init(hardwareMap);
         waitForStart();
         while (opModeIsActive()) {
+            David.outtake.setArm(Outtake.ArmPos.SPEC_DEPOSIT.getPos());
+            David.outtake.setWrist(Outtake.WristPos.SPEC_DEPOSIT.getPos());
+
             David.outtake.setTargetPosition(targetPosition);
             David.outtake.setPID(P, I, D);
             David.outtake.update();

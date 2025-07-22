@@ -35,7 +35,6 @@ public class Main extends LinearOpMode {
     ToggleButtonReader hangRetractButton;
     ToggleButtonReader hangPrepButton;
     ToggleButtonReader modeButton;
-    ToggleButtonReader resetSlideButton;
     boolean bucketMode = true;
 
 
@@ -56,9 +55,6 @@ public class Main extends LinearOpMode {
         );
         hangPrepButton = new ToggleButtonReader(
                 driverOp, GamepadKeys.Button.Y
-        );
-        resetSlideButton = new ToggleButtonReader(
-                driverOp2, GamepadKeys.Button.X
         );
 
 
@@ -89,7 +85,7 @@ public class Main extends LinearOpMode {
             // Movement
             double magnitude = Math.hypot(driveX, driveY);
             double theta = Math.toDegrees(Math.atan2(driveY, driveX));
-            David.drivetrain.drive(magnitude, theta, driveTurn, 0.7);
+            David.drivetrain.drive(magnitude, theta, driveTurn, 0.9);
 
 
 
@@ -102,6 +98,7 @@ public class Main extends LinearOpMode {
             }
 
             if (clawButton.wasJustReleased()) {
+
                 if (David.outtake.isClawOpen())
                     David.outtake.close();
                 else
@@ -112,13 +109,19 @@ public class Main extends LinearOpMode {
 
             // Intake
             if (intakeButton) {
-                if (!David.outtake.readyForIntake()) {
+                if (!bucketMode) {
+                    specDeposit.stop();
                     bucketDeposit.stop();
-                    specGrab.stop();
-                    prepareIntake.init();
+                    specGrab.init();
                 }
                 else {
-                    David.intake.intakeIn();
+                    if (!David.outtake.readyForIntake()) {
+                        bucketDeposit.stop();
+                        specGrab.stop();
+                        prepareIntake.init();
+                    } else {
+                        David.intake.intakeIn();
+                    }
                 }
             }
             else if (intakeOutButton) {
@@ -158,9 +161,6 @@ public class Main extends LinearOpMode {
             }
 
 
-            if (resetSlideButton.wasJustReleased()) {
-                David.outtake.resetSlideEncoder();
-            }
 
             David.intake.update();
             David.outtake.update();
@@ -168,11 +168,16 @@ public class Main extends LinearOpMode {
             hangPrepButton.readValue();
             hangRetractButton.readValue();
             clawButton.readValue();
-            resetSlideButton.readValue();
             prepareIntake.update();
             bucketDeposit.update();
+            specDeposit.update();
+            specGrab.update();
+            modeButton.readValue();
             outtakeButton.readValue();
             telemetry.addData("", David.drivetrain.getTelemetry());
+            telemetry.addData("", David.outtake.getTelemetry());
+            telemetry.addData("", David.intake.getTelemetry());
+            telemetry.addData("Bucket: ", bucketMode);
             telemetry.update();
         }
     }

@@ -7,13 +7,16 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Intake {
     private DcMotorEx extension;
-    private double DISTANCE_THRESHOLD = 40;
+    private TouchSensor touchSensor;
+    private double DISTANCE_THRESHOLD = 18;
     private DistanceSensor distanceSensor;
     private Servo chamber;
     private double chamberPos;
@@ -35,7 +38,7 @@ public class Intake {
 
     public enum ExtensionPosition {
         RETRACTED(0),
-        TRANSFER(0),
+        TRANSFER(-200),
         BASE_EXTEND(600);
         final int position;
 
@@ -47,9 +50,10 @@ public class Intake {
     }
 
     public enum ChamberPosition {
-        INTAKE(0.792),
-        TRANSFER(0.294),
-        OUTTAKE(0.45);
+        INTAKE(0.585),
+        RETRACT(0.0688),
+        BASE(0.27),
+        OUTTAKE(0.15);
         final double position;
 
         ChamberPosition(double position) {this.position = position;}
@@ -67,10 +71,12 @@ public class Intake {
         extension = hwMap.get(DcMotorEx.class, "extension");
         chamber = hwMap.get(Servo.class, "chamber");
         roller = hwMap.get(DcMotorEx.class, "roller");
+        touchSensor = hwMap.get(TouchSensor.class, "intakeTouch");
         extension.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         roller.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         roller.setDirection(DcMotorSimple.Direction.REVERSE);
         extension.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        chamber.setPosition(ChamberPosition.RETRACT.getPosition());
     }
 
     public void setDefaultPower(double pw)
@@ -81,13 +87,13 @@ public class Intake {
     public void extend()
     {
         positionMode = false;
-        extension.setPower(-0.8);
+        extension.setPower(-0.95);
     }
 
     public void retract()
     {
         positionMode = false;
-        extension.setPower(0.8);
+        extension.setPower(0.95);
     }
 
     public void stop()
@@ -105,13 +111,16 @@ public class Intake {
     public void update()
     {
         currentPosition = extension.getCurrentPosition();
-        if (!positionMode)
-            return;
-        error = targetPosition - currentPosition;
-        if (Math.abs(error) < ERROR) {
-            stop();
+        if (!positionMode) {
             return;
         }
+
+        if (targetPosition == ExtensionPosition.TRANSFER.position && extension.getCurrent(CurrentUnit.AMPS) >= 5) {
+            extension.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            extension.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            targetPosition = ExtensionPosition.RETRACTED.position;
+        }
+        error = targetPosition - currentPosition;
         pidPower = Range.clip(extensionController.calculate(0, error), -maxExtensionPower, maxExtensionPower);
         extension.setPower(pidPower);
 
@@ -135,11 +144,15 @@ public class Intake {
 
 
     public void intakeIn() {
+        double lowIntakePower = 0.4;
         double dist = distanceSensor.getDistance(DistanceUnit.MM);
-        if (dist <= DISTANCE_THRESHOLD)
-            intakeStop();
         setChamber(ChamberPosition.INTAKE.getPosition());
-        roller.setPower(intakePower);
+        if (dist <= DISTANCE_THRESHOLD) {
+            roller.setPower(lowIntakePower);
+        }
+        else {
+            roller.setPower(intakePower);
+        }
     }
 
     public void intakeOut() {
@@ -148,7 +161,7 @@ public class Intake {
     }
 
     public void intakeStop() {
-        setChamber(ChamberPosition.TRANSFER.getPosition());
+        setChamber(ChamberPosition.BASE.getPosition());
         roller.setPower(0);
     }
 
@@ -168,6 +181,10 @@ public class Intake {
                 "\nPID Power:" + pidPower +
                 "\nSlides Finished: " + isFinished() +
                 "\nPositionMode: " + positionMode +
-                "\nChamberPos: " + chamberPos;
+                "\nChamberPos: " + chamberPos +
+                "\nPressed: " + touchSensor.isPressed() +
+                "\nDistance: " + distanceSensor.getDistance(DistanceUnit.MM) +
+                "\nAmps: " + extension.getCurrent(CurrentUnit.AMPS) +
+                "\nPower: " + extension.getPower();
     }
 }
